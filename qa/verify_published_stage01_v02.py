@@ -170,6 +170,22 @@ def main():
                 check("disabled_ui_screen_has_elements",
                       bool(at.title or at.markdown or at.warning or at.info or at.caption),
                       "At least one expected Streamlit UI element")
+                elements = []
+                for element_group in (at.title, at.markdown, at.warning,
+                                      at.info, at.caption, at.error, at.text):
+                    for item in element_group:
+                        elements.append(str(getattr(item, "message", "") or
+                                            getattr(item, "value", "")))
+                visible = "\n".join(elements)
+                print("UI_VISIBLE_TEXT_PREFIX=" + repr(visible[:1200]), flush=True)
+                check("disabled_runtime_marker_visible",
+                      "STAGE01_V02_RUNTIME_DISABLED" in visible)
+                unsafe_buttons = [str(b.label) for b in at.button if
+                                  ("send" in str(b.label).lower() or
+                                   "approve" in str(b.label).lower()) and
+                                  not bool(getattr(b, "disabled", False))]
+                check("no_enabled_send_or_approve_button", not unsafe_buttons,
+                      repr(unsafe_buttons))
             finally:
                 if str(entry.parent) in sys.path:
                     sys.path.remove(str(entry.parent))
