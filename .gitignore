@@ -1,0 +1,9 @@
+*.sqlite3
+*.db
+.env*
+secrets*
+*.log
+*.csv
+*.tsv
+!SOURCE_ARCHIVES_AND_MODULES.tsv
+__pycache__/
