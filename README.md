@@ -28,3 +28,8 @@
 - `source/gui_v02_fix1/stage01_contract_ui_v02.py` — 8933 bytes, SHA256 `8c8e6e8c740c622dbd46a34ff3106f5486204431fd493a9fae23ebda86affe08`
 - `source/gui_v02_fix1/streamlit_8510_stage01_v02_contract_review_20261104.py` — 10341 bytes, SHA256 `e8d025949d8115887269dc03e98d0aa6e5291fd9a7389ede09da9fe2d2be2306`
 - `source/input_bridge_v02/STAGE01_V02_8504_TO_8510_APPROVED_INPUT_TRANSFER_20261104_V01.py` — 11208 bytes, SHA256 `1b4fde7a50e53065bb43eeb1249fe9c7fe40b1d3ba23cb90f485bd9141c23335`
+
+## 操作ガイド / Operations (Japanese)
+
+- [8510 Stage01 V02 操作ガイド（起動・停止・制限・テスト状態）](docs/OPERATIONS_JA_8510_STAGE01_V02.md)
+- **Source-only pre-release**: Public ZIP alone is **not a tested runnable app**. Its standalone start/stop and real-provider end-to-end behavior are **NOT_TESTED**. Do not deploy or replace formal 8510 v1.0.
