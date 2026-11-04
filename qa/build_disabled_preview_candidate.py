@@ -15,35 +15,45 @@ SPOOL_SHA="e7d89291ab6286b008d91ef0b50b2def4587e879a091de69e7b4222685be00d3"
 SPOOL="source/gui_v02_fix1/kge_v11_spool_bridge_v0_1.py"
 OUTPUT=Path("candidate/8510_STAGE01_V02_DISABLED_PREVIEW_QA_CANDIDATE.zip")
 def sha(b):return hashlib.sha256(b).hexdigest()
-MANUAL="""# 8510 Stage01 V02 / Disabled GUI Preview / QA Candidate
-This is an independent DISABLED demo. It is not formal 8510 v1.0, not a
-scientifically validated disease-mouse explanation service, and not a
-Provider-enabled or G4-accepted app. Do not overwrite any installed app.
+MANUAL="""# 8510 Stage01 V02 — 隔離・無効化GUIプレビュー候補
 
-## Requirements
-Python 3.12 with venv and pip on macOS or Linux. Create a NEW isolated folder.
+**対象**：疾患–マウス候補の引用契約を確認する開発用画面の表示。
+本ZIPは、正式8510 v1.0を置換するアプリではなく、実Provider連携、8504 G4承認、研究データ参照が一切できない**無効化プレビュー**です。研究的・臨床的有効性は未評価です。
 
-## Install, start and stop
-1. Unzip into a new empty folder without overwriting any existing source.
-2. Open Terminal in that folder.
-3. python3 -m venv .preview_venv
-4. .preview_venv/bin/python -m pip install -r requirements-preview.txt
-5. bash RUN_DISABLED_PREVIEW.command
-6. Open http://127.0.0.1:18610 in a browser (local-only preview).
-7. Verify that V02 runtime is disabled; no Provider SEND or G4 approval.
-8. To stop, return to the SAME foreground Terminal and press Control-C.
-Closing the browser does not stop Streamlit. Do not stop other containers.
+## 1. 動作環境
+macOSまたはLinux、Python 3.12、pip、venv、依存パッケージを取得するネットワーク接続が必要です。検証済み実機環境はGitHub ActionsのLinux/Python 3.12であり、**ユーザーMacでは未検証**です。既存の研究用venv、Docker、Streamlitポートを変更しないでください。
 
-If the default port is used, do not terminate the competing service;
-run: bash RUN_DISABLED_PREVIEW.command 18611
+## 2. 新しい隔離フォルダへの展開とインストール
+1. ZIPのSHA256とREADMEの版番号を照合してください。
+2. 空の新規フォルダへ展開します（既存ファイルは上書きしない）。
+3. Terminalで展開先へ移動し、次を実行します。
 
-## Known limitations
-Dependency install needs network and is not a tested offline wheelhouse.
-The package does not enable API credentials, Provider sending,
-8504 request/approval transfer, the frozen formal 8510 app or KGE ranking.
-No clinical or scientific conclusions. No PRIMARY_TEST, test, validation
-or withheld data. MAC runtime NOT_TESTED. Only cloud Linux preview QA applies.
-Historical spool module is included from a verified 2026-11-04 handoff.
+    python3 -m venv .preview_venv
+    .preview_venv/bin/python -m pip install -r requirements-preview.txt
+
+4. プレビューを起動します。
+
+    bash RUN_DISABLED_PREVIEW.command
+
+5. ブラウザで `http://127.0.0.1:18610` を開き、画面タイトル、`STAGE01_V02_RUNTIME_DISABLED`、ユーザーID未設定、有効なSEND・APPROVEボタンがないことを確認してください。
+
+既に18610番が使用されている場合、稼働中のサービスを停止せず、`bash RUN_DISABLED_PREVIEW.command 18611` で別ポートを使用してください。起動コマンドは前景実行です。
+
+## 3. 終了・再起動
+起動コマンドを実行した**同じTerminalでControl-C**を押してください。ブラウザを閉じるだけではStreamlitサーバーは終了しません。再表示は再度起動コマンドを実行します。8501/8504/正式8510のコンテナ停止・再起動は不要・禁止です。
+
+## 4. 利用者向け基本操作と制限
+- この版で可能：無効化状態のGUI表示、説明文、引用契約画面の確認。
+- この版で不可能：APIキー登録、実Provider送信、8504からの承認済み実データ入力、G4受入、疾患モデルの科学的評価。
+- 秘密情報、OpenAI APIキー、研究原本、PRIMARY_TEST、validation/test/withheldを配置・入力しないでください。
+- 旧Stage01 V01の要求を再送しないでください。正式8510へ統合しないでください。
+
+## 5. 検証範囲と障害時の対応
+GitHub ActionsではZIP CRC/SHA256/サイズ、10 Pythonソースの構文、無効化GUIのAppTest、SEND/APPROVE無効、HTTP起動、サーバー停止、候補ZIPのハッシュmanifestを確認しました。ただしMac上でのインストール、実API、研究室内ネットワーク・OS隔離、科学的妥当性は未検証です。
+
+起動失敗・例外が出た場合は再送・上書き・本番切替をせず、Terminalのエラーを保全してください。APIキーや機密情報をログ共有しないでください。
+
+この候補はGitHub Actionsから取得できる検査用成果物であり、正式なGitHub Releaseへの昇格を意味しません。
 """
 RUN="""#!/usr/bin/env bash
 set -euo pipefail
