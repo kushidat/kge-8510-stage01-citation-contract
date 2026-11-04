@@ -94,6 +94,22 @@ jobs:
           wait "$PID" || true
           echo "CANDIDATE_LAUNCHER_STOP=PASS"
           trap - EXIT
+      - name: Browser-level disabled GUI smoke (Chromium)
+        run: |
+          set -Eeuo pipefail
+          python -m pip install 'playwright>=1.50,<1.60'
+          python -m playwright install chromium
+          python qa/browser_ui_smoke.py
+      - name: Preserve browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: 8510-stage01-v02-browser-evidence
+          path: |
+            qa_browser_preview.png
+            qa_browser_stdout.log
+          if-no-files-found: ignore
+          retention-days: 30
       - name: Preserve build candidate
         if: success()
         uses: actions/upload-artifact@v4
