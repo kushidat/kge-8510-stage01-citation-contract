@@ -57,6 +57,9 @@ def inspect_archive(zbytes, workspace):
             if n.endswith(".py"):
                 b = z.read(n)
                 ast.parse(b.decode("utf-8-sig"), filename=n)
+                if n == EXPECTED_ENTRY:
+                    t = ast.parse(b.decode("utf-8-sig"), filename=n)
+                    print('ENTRY_IMPORTS=' + json.dumps([ast.unparse(x) for x in ast.walk(t) if isinstance(x, (ast.Import, ast.ImportFrom))], ensure_ascii=False), flush=True)
                 p = workspace / n
                 p.parent.mkdir(parents=True, exist_ok=True)
                 p.write_bytes(b)
