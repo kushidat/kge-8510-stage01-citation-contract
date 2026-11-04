@@ -9,6 +9,7 @@
 - [依存モジュールを復元した隔離候補の起動・停止・無効化GUI検証](https://github.com/kushidat/kge-8510-stage01-citation-contract/actions/runs/41872782019)
 - [QA修復ブランチ（検査コード・日本語マニュアル入り候補の作成コード）](https://github.com/kushidat/kge-8510-stage01-citation-contract/tree/qa/8510-release-certification-20261105)
 - [公開後の監査報告](https://github.com/kushidat/kge-8510-stage01-citation-contract/blob/qa/8510-release-certification-20261105/qa/INCIDENT_QA_REPORT_JA_20261105.md)
+- [公開後品質監査・Linux/macOS実行検証の正式記録](docs/RELEASE_QA_AUDIT_20261105_JA.md)
 
 修復候補のPASSは**隔離・無効化プレビューの限定的な技術試験**です。実Provider送信、8504 G4受入、Mac実機、正式8510 v1.0との統合、科学的妥当性は未検証です。**公開済みv0.2.0を完成した単独動作アプリとして配備しないでください。**
 
