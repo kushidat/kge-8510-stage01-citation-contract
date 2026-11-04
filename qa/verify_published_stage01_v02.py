@@ -136,6 +136,16 @@ def main():
         with tempfile.TemporaryDirectory(prefix="8510_release_qa_") as td:
             root = Path(td)
             entry = inspect_archive(raw, root)
+            # Candidate-specific dependency recovery from the SHA-pinned
+            # historical 2026-11-04 handoff. Does NOT change the release ZIP.
+            recovered = Path("qa/recovered_sources/kge_v11_spool_bridge_v0_1.py")
+            check("historical_spool_dependency_exists", recovered.is_file())
+            recovery_bytes = recovered.read_bytes()
+            check("historical_spool_dependency_sha256",
+                  hashlib.sha256(recovery_bytes).hexdigest() ==
+                  "e7d89291ab6286b008d91ef0b50b2def4587e879a091de69e7b4222685be00d3")
+            (entry.parent / "kge_v11_spool_bridge_v0_1.py").write_bytes(recovery_bytes)
+            out["scope"] = "public_unchanged_asset_plus_historical_dependency_candidate"
             # Unlike an HTTP health endpoint, AppTest executes the Streamlit
             # script and checks for Python runtime exceptions in disabled mode.
             from streamlit.testing.v1 import AppTest
