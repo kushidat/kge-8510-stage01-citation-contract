@@ -49,7 +49,7 @@ macOSまたはLinux、Python 3.12、pip、venv、依存パッケージを取得�
 - 旧Stage01 V01の要求を再送しないでください。正式8510へ統合しないでください。
 
 ## 5. 検証範囲と障害時の対応
-GitHub ActionsではZIP CRC/SHA256/サイズ、10 Pythonソースの構文、無効化GUIのAppTest、SEND/APPROVE無効、HTTP起動、サーバー停止、候補ZIPのハッシュmanifestを確認しました。ただしMac上でのインストール、実API、研究室内ネットワーク・OS隔離、科学的妥当性は未検証です。
+GitHub ActionsではZIP CRC/SHA256/サイズ、6 Pythonソースの構文、無効化GUIのAppTest、SEND/APPROVE無効、HTTP起動、サーバー停止、候補ZIPのハッシュmanifestを確認しました。ただしMac上でのインストール、実API、研究室内ネットワーク・OS隔離、科学的妥当性は未検証です。
 
 起動失敗・例外が出た場合は再送・上書き・本番切替をせず、Terminalのエラーを保全してください。APIキーや機密情報をログ共有しないでください。
 
@@ -92,9 +92,9 @@ def main():
     with ZipFile(io.BytesIO(old)) as z:
         if z.testzip() is not None:raise RuntimeError("SOURCE_CRC_FAILED")
         for n in z.namelist():
-            if n.startswith("source/") and n.endswith(".py"):
+            if n.startswith("source/gui_v02_fix1/") and n.endswith(".py"):
                 b=z.read(n);ast.parse(b.decode("utf-8-sig"));items[n]=b
-    if len(items)!=9:raise RuntimeError("EXPECTED_NINE_SOURCE_MODULES")
+    if len(items)!=5:raise RuntimeError("EXPECTED_FIVE_GUI_MODULES")
     items[SPOOL]=sp
     items["README_FIRST_JA.md"]=MANUAL.encode()
     items["RUN_DISABLED_PREVIEW.command"]=RUN.encode()
