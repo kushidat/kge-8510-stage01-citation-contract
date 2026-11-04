@@ -110,6 +110,8 @@ jobs:
             qa_browser_stdout.log
           if-no-files-found: ignore
           retention-days: 30
+      - name: Independent source allowlist, secret-shape and manual checks
+        run: python qa/security_scan_candidate.py
       - name: Preserve build candidate
         if: success()
         uses: actions/upload-artifact@v4
@@ -155,6 +157,7 @@ jobs:
         run: |
           set -Eeuo pipefail
           python qa/build_disabled_preview_candidate.py
+          python qa/security_scan_candidate.py
           TEST_ROOT="$(mktemp -d)"
           python -m zipfile -e candidate/8510_STAGE01_V02_DISABLED_PREVIEW_QA_CANDIDATE.zip "$TEST_ROOT"
           python -m venv --system-site-packages "$TEST_ROOT/.preview_venv"
