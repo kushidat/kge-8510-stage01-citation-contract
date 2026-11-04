@@ -33,6 +33,36 @@ jobs:
         run: |
           set -Eeuo pipefail
           python qa/verify_published_stage01_v02.py | tee qa_verification_stdout.txt
+      - name: Build disabled-preview QA candidate with SHA manifest and manual
+        run: |
+          set -Eeuo pipefail
+          python qa/build_disabled_preview_candidate.py
+          python - <<'PY'
+          from zipfile import ZipFile
+          from pathlib import Path
+          import hashlib,csv,io,zlib
+          p=Path("candidate/8510_STAGE01_V02_DISABLED_PREVIEW_QA_CANDIDATE.zip")
+          with ZipFile(p) as z:
+              assert z.testzip() is None
+              names=z.namelist()
+              assert len(names)==len(set(names))
+              m=list(csv.DictReader(io.StringIO(z.read("MANIFEST_SHA256_SIZE_CRC.tsv").decode()), delimiter="\t"))
+              assert len(m)==len(names)-1
+              for item in m:
+                  b=z.read(item["path"])
+                  assert len(b)==int(item["size_bytes"])
+                  assert hashlib.sha256(b).hexdigest()==item["sha256"]
+                  assert format(zlib.crc32(b)&0xffffffff,"08x")==item["crc32_hex"]
+          print("CANDIDATE_CRC_MANIFEST_SHA_SIZE=PASS",len(m))
+          PY
+      - name: Preserve build candidate
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: 8510-stage01-v02-disabled-preview-qa-candidate
+          path: candidate/8510_STAGE01_V02_DISABLED_PREVIEW_QA_CANDIDATE.zip
+          if-no-files-found: error
+          retention-days: 30
       - name: Preserve QA report
         if: always()
         uses: actions/upload-artifact@v4
