@@ -129,3 +129,77 @@ jobs:
             streamlit_server.log
           if-no-files-found: ignore
           retention-days: 30
+
+  macos-smoke:
+    runs-on: macos-latest
+    timeout-minutes: 20
+    env:
+      KGE_STAGE01_V02_ENABLED: 'NO'
+      APP_USER_ID: ''
+      ALLOW_SERVER_OPENAI_KEY: 'false'
+      OPENAI_API_KEY: ''
+      KEY_ENCRYPTION_SECRET: ''
+      STREAMLIT_BROWSER_GATHER_USAGE_STATS: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install isolated preview test dependencies
+        run: python -m pip install 'streamlit>=1.45,<1.60' 'pandas>=2.2,<3.0' 'plotly>=5,<7' 'requests>=2.31,<3' 'openai>=1.0,<4' 'cryptography>=42,<50'
+      - name: Verify original public artifact and disabled page on macOS
+        run: |
+          set -Eeuo pipefail
+          python qa/verify_published_stage01_v02.py | tee qa_macos_stdout.txt
+      - name: Build candidate with guide and verify bundled macOS launcher
+        run: |
+          set -Eeuo pipefail
+          python qa/build_disabled_preview_candidate.py
+          TEST_ROOT="$(mktemp -d)"
+          python -m zipfile -e candidate/8510_STAGE01_V02_DISABLED_PREVIEW_QA_CANDIDATE.zip "$TEST_ROOT"
+          python -m venv --system-site-packages "$TEST_ROOT/.preview_venv"
+          bash -n "$TEST_ROOT/RUN_DISABLED_PREVIEW.command"
+          PORT="$(python -c 'import socket;s=socket.socket();s.bind(("127.0.0.1",0));print(s.getsockname()[1]);s.close()')"
+          bash "$TEST_ROOT/RUN_DISABLED_PREVIEW.command" "$PORT" > candidate_macos_stdout.txt 2>&1 &
+          PID=$!
+          cleanup() {
+            if kill -0 "$PID" 2>/dev/null; then
+              kill -TERM "$PID" 2>/dev/null || true
+              wait "$PID" || true
+            fi
+          }
+          trap cleanup EXIT
+          READY=0
+          for i in $(seq 1 80); do
+            if curl --fail --silent --show-error --max-time 1 "http://127.0.0.1:$PORT/_stcore/health" 2>/dev/null | grep -q '^ok'; then
+              READY=1; break
+            fi
+            if ! kill -0 "$PID" 2>/dev/null; then break; fi
+            sleep 1
+          done
+          test "$READY" -eq 1
+          echo "MACOS_CANDIDATE_LAUNCHER_HTTP_START=PASS"
+          kill -TERM "$PID"
+          for i in $(seq 1 40); do
+            if ! kill -0 "$PID" 2>/dev/null; then break; fi
+            sleep 0.25
+          done
+          if kill -0 "$PID" 2>/dev/null; then
+            echo "MACOS_CANDIDATE_LAUNCHER_STOP=FAIL" >&2
+            exit 2
+          fi
+          wait "$PID" || true
+          echo "MACOS_CANDIDATE_LAUNCHER_STOP=PASS"
+          trap - EXIT
+      - name: Retain macOS test logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: 8510-macos-preview-test-logs
+          path: |
+            qa_macos_stdout.txt
+            qa_verification.json
+            streamlit_server.log
+            candidate_macos_stdout.txt
+          if-no-files-found: ignore
+          retention-days: 30
