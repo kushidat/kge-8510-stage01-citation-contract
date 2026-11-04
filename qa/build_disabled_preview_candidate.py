@@ -76,12 +76,12 @@ export STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
 echo "DISABLED_PREVIEW_ONLY=YES; URL=http://127.0.0.1:$PORT; STOP=Ctrl-C"
 exec "$PY" -m streamlit run "$ROOT/source/gui_v02_fix1/streamlit_8510_stage01_v02_contract_review_20261104.py" --server.headless=true --server.address=127.0.0.1 --server.port="$PORT" --server.fileWatcherType=none --browser.gatherUsageStats=false
 """
-REQUIREMENTS="""streamlit>=1.45,<1.60
-pandas>=2.2,<3
-plotly>=5,<7
-requests>=2.31,<3
-openai>=1.0,<4
-cryptography>=42,<50
+REQUIREMENTS="""streamlit==1.59.2
+pandas==2.3.3
+plotly==6.9.0
+requests==2.34.2
+openai==3.45.0
+cryptography==49.0.0
 """
 def main():
     with urlopen(URL,timeout=30) as r:old=r.read(1024*1024)
