@@ -55,6 +55,45 @@ jobs:
                   assert format(zlib.crc32(b)&0xffffffff,"08x")==item["crc32_hex"]
           print("CANDIDATE_CRC_MANIFEST_SHA_SIZE=PASS",len(m))
           PY
+      - name: Candidate launcher end-to-end start, HTTP health and stop
+        run: |
+          set -Eeuo pipefail
+          TEMP_DIR="$(mktemp -d)"
+          python -m zipfile -e candidate/8510_STAGE01_V02_DISABLED_PREVIEW_QA_CANDIDATE.zip "$TEMP_DIR"
+          python -m venv --system-site-packages "$TEMP_DIR/.preview_venv"
+          bash -n "$TEMP_DIR/RUN_DISABLED_PREVIEW.command"
+          PORT="$(python -c 'import socket; s=socket.socket();s.bind(("127.0.0.1",0));print(s.getsockname()[1]);s.close()')"
+          bash "$TEMP_DIR/RUN_DISABLED_PREVIEW.command" "$PORT" > candidate_launcher_stdout.txt 2>&1 &
+          PID=$!
+          cleanup() {
+            if kill -0 "$PID" 2>/dev/null; then
+              kill -TERM "$PID" 2>/dev/null || true
+              wait "$PID" || true
+            fi
+          }
+          trap cleanup EXIT
+          OK=0
+          for i in $(seq 1 60); do
+            if curl -fsS --max-time 1 "http://127.0.0.1:$PORT/_stcore/health" | grep -q 'ok'; then
+              OK=1; break
+            fi
+            if ! kill -0 "$PID" 2>/dev/null; then break; fi
+            sleep 1
+          done
+          test "$OK" -eq 1
+          echo "CANDIDATE_LAUNCHER_HTTP_START=PASS"
+          kill -TERM "$PID"
+          for i in $(seq 1 20); do
+            if ! kill -0 "$PID" 2>/dev/null; then break; fi
+            sleep 0.2
+          done
+          if kill -0 "$PID" 2>/dev/null; then
+            echo "CANDIDATE_LAUNCHER_STOP=FAIL" >&2
+            exit 2
+          fi
+          wait "$PID" || true
+          echo "CANDIDATE_LAUNCHER_STOP=PASS"
+          trap - EXIT
       - name: Preserve build candidate
         if: success()
         uses: actions/upload-artifact@v4
