@@ -133,6 +133,38 @@ def main():
         with tempfile.TemporaryDirectory(prefix="8510_release_qa_") as td:
             root = Path(td)
             entry = inspect_archive(raw, root)
+            # Unlike an HTTP health endpoint, AppTest executes the Streamlit
+            # script and checks for Python runtime exceptions in disabled mode.
+            from streamlit.testing.v1 import AppTest
+            old_env = {key: os.environ.get(key) for key in
+                       ("KGE_STAGE01_V02_ENABLED", "APP_USER_ID",
+                        "OPENAI_API_KEY", "ALLOW_SERVER_OPENAI_KEY",
+                        "KEY_ENCRYPTION_SECRET", "PYTHONPATH")}
+            try:
+                os.environ.update({
+                    "KGE_STAGE01_V02_ENABLED": "NO",
+                    "APP_USER_ID": "",
+                    "OPENAI_API_KEY": "",
+                    "ALLOW_SERVER_OPENAI_KEY": "false",
+                    "KEY_ENCRYPTION_SECRET": "",
+                    "PYTHONPATH": str(entry.parent),
+                })
+                sys.path.insert(0, str(entry.parent))
+                at = AppTest.from_file(str(entry), default_timeout=45).run()
+                errors = [str(x.message) for x in at.exception]
+                check("disabled_ui_python_execution", not errors,
+                      ("; ".join(errors))[:750] if errors else "No AppTest exception")
+                check("disabled_ui_screen_has_elements",
+                      bool(at.title or at.markdown or at.warning or at.info or at.caption),
+                      "At least one expected Streamlit UI element")
+            finally:
+                if str(entry.parent) in sys.path:
+                    sys.path.remove(str(entry.parent))
+                for key, value in old_env.items():
+                    if value is None:
+                        os.environ.pop(key, None)
+                    else:
+                        os.environ[key] = value
             test_preview(entry, root)
     except BaseException as ex:
         out["exception"] = type(ex).__name__ + ": " + str(ex)
